@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.net.ConnectivityManagerCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,14 @@ import com.cbapps.films.movie.Movie;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 	private List<Movie> movies;
 	private BroadcastReceiver networkReceiver;
 	private IntentFilter networkIntentFilter;
+	private ScheduledFuture future;
     private RecyclerView recyclerView;
 	private MovieAdapter adapter;
 
@@ -67,12 +76,14 @@ public class MainActivity extends AppCompatActivity {
 	protected void onStart() {
 		super.onStart();
 		registerReceiver(networkReceiver, networkIntentFilter);
+		future = scheduleUpdater();
 	}
 
 	@Override
 	protected void onStop() {
 		super.onStop();
 		unregisterReceiver(networkReceiver);
+		future.cancel(true);
 	}
 
 	public void refreshMovies(final boolean fromNetwork) {
@@ -124,5 +135,26 @@ public class MainActivity extends AppCompatActivity {
 				else Snackbar.make(recyclerView, R.string.saving_failed, Snackbar.LENGTH_SHORT).show();
 			}
 		}.execute();
+	}
+
+	public ScheduledFuture scheduleUpdater() {
+		Calendar now = Calendar.getInstance();
+		ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		return service.scheduleAtFixedRate(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Log.d(TAG, "Update times...");
+							adapter.updateTimes();
+						}
+					});
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}, 60 - now.get(Calendar.SECOND) + 1, 60, TimeUnit.SECONDS);
 	}
 }

@@ -3,4 +3,5 @@
     <string name="app_name">Films</string>
     <string name="saving_failed">Opslaan mislukt</string>
     <string name="saving_succeeded">Opgeslagen</string>
+    <string name="just_started">Zojuist</string>
 </resources>

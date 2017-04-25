@@ -3,4 +3,5 @@
     <string name="saving_failed">Saving failed</string>
     <string name="saving_succeeded">Saved</string>
     <string name="time_attr_placeholder" translatable="false">%s %s - %s</string>
+    <string name="just_started">Just</string>
 </resources>

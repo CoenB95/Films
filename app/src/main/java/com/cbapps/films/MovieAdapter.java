@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.ColorInt;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import java.util.List;
  * @author Coen Boelhouwers
  */
 public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+	public static final int JUST_STARTED_MINUTES = 10;
 
 	private Context context;
 	private List<ViewType> viewTypes;
@@ -53,6 +56,21 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 			}
 		}
 		notifyDataSetChanged();
+	}
+
+	public void updateTimes() {
+		SimpleTime now = SimpleTime.now();
+		for (int i = 0; i < viewTypes.size(); i++) {
+			ViewType v = viewTypes.get(i);
+			if (v.type == ViewType.TYPE_TIME || v.type == ViewType.TYPE_END) {
+				int timeTill = now.getMinutesTill(((ScheduledTime) v.movie).getTime());
+				if (timeTill >= -JUST_STARTED_MINUTES && timeTill < 60) {
+					Log.d("MovieAdapter", "Update time at position " + i);
+					notifyItemChanged(i);
+				}
+			}
+		}
+		notifyItemRangeChanged(0, getItemCount());
 	}
 
 	@Override
@@ -127,15 +145,19 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 			nextTime.setTextColor(colorTextSecondary);
 			nextTimeAttr.setTextColor(colorTextSecondary);
 			SimpleTime now = SimpleTime.now();
-			if (time.getTime().isBefore(now)) {
-				nextTime.setTextColor(colorGrey);
-				nextTimeAttr.setTextColor(colorGrey);
+			if (now.isBefore(time.getTime().minusMinutes(60))) {
+				nextTime.setTextColor(colorGreen);
 				nextTime.setText(time.getTime().toString());
-			} else if (time.getTime().isBefore(now.plusHours(1))) {
+			} else if (now.isBefore(time.getTime())) {
 				nextTime.setTextColor(colorOrange);
 				nextTime.setText(SimpleTime.now().getDurationTill(time.getTime()));
+			} else if (now.isBefore(time.getTime().plusMinutes(JUST_STARTED_MINUTES))) {
+				nextTime.setTextColor(colorRed);
+				nextTimeAttr.setTextColor(colorGrey);
+				nextTime.setText(R.string.just_started);
 			} else {
-				nextTime.setTextColor(colorGreen);
+				nextTime.setTextColor(colorGrey);
+				nextTimeAttr.setTextColor(colorGrey);
 				nextTime.setText(time.getTime().toString());
 			}
 			nextTimeAttr.setText(time.getAttrString());

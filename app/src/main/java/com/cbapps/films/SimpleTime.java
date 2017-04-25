@@ -17,6 +17,10 @@ public class SimpleTime implements Comparable<SimpleTime> {
 	private byte minute;
 
 	private SimpleTime(int hour, int minute) {
+		while (minute <= -60) {
+			minute += 60;
+			hour -= 1;
+		}
 		while (minute >= 60) {
 			minute -= 60;
 			hour += 1;
@@ -38,6 +42,10 @@ public class SimpleTime implements Comparable<SimpleTime> {
 
 	public boolean isBefore(SimpleTime other) {
 		return compareTo(other) < 0;
+	}
+
+	public SimpleTime minusMinutes(int value) {
+		return plusMinutes(-value);
 	}
 
 	public static SimpleTime now() {
@@ -66,7 +74,11 @@ public class SimpleTime implements Comparable<SimpleTime> {
 	}
 
 	public SimpleTime plusHours(int amount) {
-		return new SimpleTime(hour + amount, minute);
+		return plusMinutes(amount * 60);
+	}
+
+	public SimpleTime plusMinutes(int amount) {
+		return new SimpleTime(hour, minute + amount);
 	}
 
 	public String getDurationTill(SimpleTime other) {
