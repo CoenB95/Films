@@ -10,9 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.cbapps.films.movie.Extra;
 import com.cbapps.films.movie.Movie;
 import com.cbapps.films.movie.ScheduledTime;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalTime;
+import org.joda.time.Minutes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,11 +63,12 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 	}
 
 	public void updateTimes() {
-		SimpleTime now = SimpleTime.now();
+		DateTime now = DateTime.now();
 		for (int i = 0; i < viewTypes.size(); i++) {
 			ViewType v = viewTypes.get(i);
 			if (v.type == ViewType.TYPE_TIME || v.type == ViewType.TYPE_END) {
-				int timeTill = now.getMinutesTill(((ScheduledTime) v.movie).getTime());
+				int timeTill = Minutes.minutesBetween(now, ((ScheduledTime) v.movie).getTime())
+						.getMinutes();
 				if (timeTill >= -JUST_STARTED_MINUTES && timeTill < 60) {
 					Log.d("MovieAdapter", "Update time at position " + i);
 					notifyItemChanged(i);
@@ -122,7 +127,6 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
 		private Object movie;
 		private int type;
-		private int index;
 
 		private ViewType(Object movie, int type) {
 			this.movie = movie;
@@ -144,13 +148,14 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 		public void setTime(ScheduledTime time) {
 			nextTime.setTextColor(colorTextSecondary);
 			nextTimeAttr.setTextColor(colorTextSecondary);
-			SimpleTime now = SimpleTime.now();
+			DateTime now = DateTime.now();
 			if (now.isBefore(time.getTime().minusMinutes(60))) {
 				nextTime.setTextColor(colorGreen);
-				nextTime.setText(time.getTime().toString());
+				nextTime.setText(time.getTime().withZone(DateTimeZone.getDefault()).toString(ScheduledTime.LOCAL_FORMAT));
 			} else if (now.isBefore(time.getTime())) {
 				nextTime.setTextColor(colorOrange);
-				nextTime.setText(SimpleTime.now().getDurationTill(time.getTime()));
+				nextTime.setText(context.getResources().getString(R.string.minutes_format,
+						Minutes.minutesBetween(now, time.getTime()).getMinutes()));
 			} else if (now.isBefore(time.getTime().plusMinutes(JUST_STARTED_MINUTES))) {
 				nextTime.setTextColor(colorRed);
 				nextTimeAttr.setTextColor(colorGrey);
@@ -158,7 +163,7 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 			} else {
 				nextTime.setTextColor(colorGrey);
 				nextTimeAttr.setTextColor(colorGrey);
-				nextTime.setText(time.getTime().toString());
+				nextTime.setText(time.getTime().withZone(DateTimeZone.getDefault()).toString(ScheduledTime.LOCAL_FORMAT));
 			}
 			nextTimeAttr.setText(time.getAttrString());
 		}
@@ -176,42 +181,6 @@ public class MovieAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
 		public void setMovie(Movie movie) {
 			title.setText(movie.getName());
-//
-//			List<ScheduledTime> times = movie.getTimes();
-//
-//
-//			for (int i = 0; i < times.size(); i++) {
-//				ScheduledTime time = times.get(i);
-//				if (time.getTime().isBefore(now)) continue;
-//
-//
-//
-//
-//
-//				view.setTextColor(colorTextSecondary);
-//				if (i >= times.size()) {
-//					view.setText("");
-//					continue;
-//				}
-//				StringBuilder textBuilder = new StringBuilder();
-//
-//				int minTill = SimpleTime.now().getMinutesTill(time.getTime());
-//				if (firstTime && minTill < 60 && minTill > 0) {
-//					firstTime = false;
-//					textBuilder.append(SimpleTime.now().getDurationTill(time.getTime()));
-//				} else textBuilder.append(time.getTime().toString());
-//				textBuilder.append(' ').append(time.getLanguage().toString());
-//				textBuilder.append(' ').append(time.getProjection().toString());
-//				for (Extra e : time.getExtras()) textBuilder.append(' ').append(e.toString());
-//
-//				if (time.getTime().isBefore(now))
-//					view.setTextColor(colorGrey);
-//				else if (time.getTime().isBefore(now.plusHours(1)))
-//					view.setTextColor(colorOrange);
-//				else
-//					view.setTextColor(colorGreen);
-//				view.setText(textBuilder.toString());
-//			}
 		}
 	}
 }

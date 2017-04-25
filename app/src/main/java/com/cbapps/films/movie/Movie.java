@@ -7,6 +7,8 @@ import android.util.Log;
 
 import com.cbapps.films.SimpleTime;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,7 +85,7 @@ public class Movie implements Comparable<Movie> {
 		return name;
 	}
 
-	public ScheduledTime getNextTime(SimpleTime now) {
+	public ScheduledTime getNextTime(DateTime now) {
 		Collections.sort(times);
 		for (ScheduledTime time : times) {
 			if (time.getTime().isAfter(now)) return time;

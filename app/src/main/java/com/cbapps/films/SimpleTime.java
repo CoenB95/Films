@@ -10,8 +10,9 @@ import java.util.Locale;
 
 /**
  * @author Coen Boelhouwers
+ * @deprecated convert to JodaTime.
  */
-
+@Deprecated
 public class SimpleTime implements Comparable<SimpleTime> {
 	private byte hour;
 	private byte minute;

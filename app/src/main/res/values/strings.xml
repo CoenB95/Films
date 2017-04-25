@@ -4,4 +4,5 @@
     <string name="saving_succeeded">Saved</string>
     <string name="time_attr_placeholder" translatable="false">%s %s - %s</string>
     <string name="just_started">Just</string>
+    <string name="minutes_format">%d min</string>
 </resources>

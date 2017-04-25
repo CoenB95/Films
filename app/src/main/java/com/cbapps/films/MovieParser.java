@@ -35,6 +35,7 @@ import java.util.List;
 public class MovieParser {
 
 	private static final String TAG = "MovieParser";
+	private static final int VERSION = 2;
 
 	private static void filterMovieName(Movie movie) {
 		String name = movie.getName();
@@ -52,6 +53,11 @@ public class MovieParser {
 			String line;
 			while ((line = reader.readLine()) != null) builder.append(line);
 			JSONObject movieObject = new JSONObject(builder.toString());
+			int v = movieObject.optInt("version", 0);
+			if (v != VERSION) {
+				Log.w(TAG, "Version mismatch: expected " + VERSION + " but found " + v);
+				Log.w(TAG, "Skip loading, return empty list.");
+			}
 			JSONArray movieArray = movieObject.getJSONArray("movies");
 			for (int i = 0; i < movieArray.length(); i++) {
 				movies.add(Movie.fromJson(movieArray.getJSONObject(i)));
@@ -120,6 +126,7 @@ public class MovieParser {
     public static boolean saveToFile(List<Movie> movies, File file) {
 	    try {
 		    JSONObject object = new JSONObject();
+		    object.put("version", VERSION);
 		    JSONArray movieArray = new JSONArray();
 		    for (Movie movie : movies) movieArray.put(movie.toJson());
 		    object.put("movies", movieArray);
