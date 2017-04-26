@@ -52,7 +52,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 	}
 
 	public static ScheduledTime fromJson(JSONObject object) throws TimeParseException {
-		ScheduledTime time = new ScheduledTime(DateTime.parse(object.optString("time"), FORMAT),
+		ScheduledTime time = new ScheduledTime(DateTime.parse(object.optString("time")),
 				object.optBoolean("active"),
 				object.optBoolean("full"));
 		time.setLanguage(Language.valueOf(object.optString("language",
@@ -78,8 +78,14 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 	public static ScheduledTime ofString(String value, boolean active, boolean full,
 	                                     Language lang, Projection proj, Collection<Extra> extras)
 			throws TimeParseException {
+		return ofString(value, 0, active, full, lang, proj, extras);
+	}
+
+	public static ScheduledTime ofString(String value, int offsetDays, boolean active, boolean full,
+	                                     Language lang, Projection proj, Collection<Extra> extras)
+			throws TimeParseException {
 		ScheduledTime time = new ScheduledTime(DateTime.parse(value, FORMAT)
-				.withDate(LocalDate.now()), active, full);
+				.withDate(LocalDate.now().plusDays(offsetDays)), active, full);
 		time.setLanguage(lang);
 		time.setProjection(proj);
 		if (extras != null) time.addExtras(extras);
@@ -133,7 +139,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 
 	public JSONObject toJson() throws JSONException {
 		JSONObject object = new JSONObject();
-		object.put("time", time.toString(FORMAT));
+		object.put("time", time.toString());
 		object.put("active", active);
 		object.put("full", full);
 		object.put("language", language.name());

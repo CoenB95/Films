@@ -7,12 +7,10 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.net.ConnectivityManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,14 +18,11 @@ import android.util.Log;
 import com.cbapps.films.movie.Movie;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,6 +42,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 	    adapter = new MovieAdapter(getBaseContext());
+	    adapter.addOnMovieClickListener(new MovieAdapter.OnMovieClickListener() {
+		    @Override
+		    public void onMovieClicked(Movie movie) {
+			    Snackbar.make(recyclerView, movie.getName() + " clicked", Snackbar.LENGTH_SHORT).show();
+			    adapter.showTimes(movie);
+		    }
+	    });
 
 	    recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 	    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
 		    @Override
 		    protected void onPostExecute(List<Movie> newMovies) {
 			    movies = newMovies;
-			    adapter.setMovies(movies);
+			    adapter.showMovies(movies);
 			    if (fromNetwork) {
 				    saveMovies();
 			    }

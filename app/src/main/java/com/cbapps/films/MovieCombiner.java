@@ -4,9 +4,7 @@ import android.util.Log;
 
 import com.cbapps.films.movie.Movie;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,8 +35,7 @@ public class MovieCombiner {
 						"'!");
 				Log.d(TAG, "Combining " + origin.getTimes().size() + " + " + movie.getTimes().size() +
 						" times.");
-				origin.addTimes(movie.getTimes());
-				Collections.sort(origin.getTimes());
+				origin.addTimes(movie.getAllTimes());
 				it.remove();
 			} else {
 				mapping.put(key, movie);
@@ -52,9 +49,7 @@ public class MovieCombiner {
 	private static String createMatchString(Movie movie) {
 		StringBuilder builder = new StringBuilder();
 		List<String> list = Arrays.asList(movie.getName().split("\\s"));
-		ListIterator<String> it = list.listIterator();
-		while (it.hasNext()) {
-			String n = it.next();
+		for (String n : list) {
 			if (!match.contains(n)) builder.append(n);
 		}
 		return builder.toString();
