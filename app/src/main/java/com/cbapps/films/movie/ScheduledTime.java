@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -51,8 +52,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 	}
 
 	public static ScheduledTime fromJson(JSONObject object) throws TimeParseException {
-		ScheduledTime time = new ScheduledTime(DateTime.parse(object.optString("time"),
-						FORMAT.withZone(DateTimeZone.forID("Europe/Amsterdam"))),
+		ScheduledTime time = new ScheduledTime(DateTime.parse(object.optString("time"), FORMAT),
 				object.optBoolean("active"),
 				object.optBoolean("full"));
 		time.setLanguage(Language.valueOf(object.optString("language",
@@ -78,8 +78,8 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 	public static ScheduledTime ofString(String value, boolean active, boolean full,
 	                                     Language lang, Projection proj, Collection<Extra> extras)
 			throws TimeParseException {
-		ScheduledTime time = new ScheduledTime(DateTime.parse(value,
-		FORMAT), active, full);
+		ScheduledTime time = new ScheduledTime(DateTime.parse(value, FORMAT)
+				.withDate(LocalDate.now()), active, full);
 		time.setLanguage(lang);
 		time.setProjection(proj);
 		if (extras != null) time.addExtras(extras);
@@ -133,7 +133,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 
 	public JSONObject toJson() throws JSONException {
 		JSONObject object = new JSONObject();
-		object.put("time", time.toString(FORMAT.withLocale(new Locale("nl_NL"))));
+		object.put("time", time.toString(FORMAT));
 		object.put("active", active);
 		object.put("full", full);
 		object.put("language", language.name());
