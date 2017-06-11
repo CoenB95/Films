@@ -6,7 +6,13 @@
     android:layout_height="match_parent">
     <fragment android:name="com.cbapps.films.ListFragment"
         android:id="@+id/list"
-        android:layout_weight="1"
+        android:layout_weight="2"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        tools:layout="@layout/movie_list" />
+    <fragment android:name="com.cbapps.films.DetailFragment"
+        android:id="@+id/viewer"
+        android:layout_weight="3"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         tools:layout="@layout/movie_list" />

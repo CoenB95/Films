@@ -2,28 +2,41 @@ package com.cbapps.films.movie;
 
 import android.support.annotation.NonNull;
 
-import com.cbapps.films.SimpleTime;
-
+import org.joda.time.Chronology;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author Coen Boelhouwers
  */
 
 public class ScheduledTime implements Comparable<ScheduledTime> {
-	private SimpleTime time;
+
+	public static final String TIMEZONE = "Europe/Amsterdam";
+	public static final DateTimeFormatter LOCAL_FORMAT = DateTimeFormat.forPattern("H:mm");
+	public static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern("H:mm")
+			.withZone(DateTimeZone.forID(TIMEZONE));
+
+	private DateTime time;
 	private boolean active;
 	private boolean full;
 	private Language language;
 	private Projection projection;
 	private EnumSet<Extra> extras;
 
-	private ScheduledTime(SimpleTime time, boolean active, boolean full) {
+	private ScheduledTime(DateTime time, boolean active, boolean full) {
 		this.time = time;
 		this.active = active;
 		this.full = full;
@@ -39,8 +52,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 	}
 
 	public static ScheduledTime fromJson(JSONObject object) throws TimeParseException {
-		ScheduledTime time = new ScheduledTime(
-				SimpleTime.ofMinutes(object.optInt("time")),
+		ScheduledTime time = new ScheduledTime(DateTime.parse(object.optString("time")),
 				object.optBoolean("active"),
 				object.optBoolean("full"));
 		time.setLanguage(Language.valueOf(object.optString("language",
@@ -59,16 +71,24 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 
 	public static ScheduledTime ofString(String value, boolean active, boolean full)
 			throws TimeParseException {
-		return new ScheduledTime(SimpleTime.parse(value), active, full);
+		return ofString(value, active, full, Language.getDefault(), Projection.getDefault(),
+				null);
 	}
 
 	public static ScheduledTime ofString(String value, boolean active, boolean full,
 	                                     Language lang, Projection proj, Collection<Extra> extras)
 			throws TimeParseException {
-		ScheduledTime time = new ScheduledTime(SimpleTime.parse(value), active, full);
+		return ofString(value, 0, active, full, lang, proj, extras);
+	}
+
+	public static ScheduledTime ofString(String value, int offsetDays, boolean active, boolean full,
+	                                     Language lang, Projection proj, Collection<Extra> extras)
+			throws TimeParseException {
+		ScheduledTime time = new ScheduledTime(DateTime.parse(value, FORMAT)
+				.withDate(LocalDate.now().plusDays(offsetDays)), active, full);
 		time.setLanguage(lang);
 		time.setProjection(proj);
-		time.addExtras(extras);
+		if (extras != null) time.addExtras(extras);
 		return time;
 	}
 
@@ -97,7 +117,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 		return extras;
 	}
 
-	public SimpleTime getTime() {
+	public DateTime getTime() {
 		return time;
 	}
 
@@ -119,7 +139,7 @@ public class ScheduledTime implements Comparable<ScheduledTime> {
 
 	public JSONObject toJson() throws JSONException {
 		JSONObject object = new JSONObject();
-		object.put("time", time.toMinutes());
+		object.put("time", time.toString());
 		object.put("active", active);
 		object.put("full", full);
 		object.put("language", language.name());

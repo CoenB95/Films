@@ -1,27 +1,19 @@
 package com.cbapps.films.movie;
 
 import android.support.annotation.NonNull;
-import android.util.JsonReader;
-import android.util.JsonWriter;
 import android.util.Log;
 
-import com.cbapps.films.SimpleTime;
-
+import org.joda.time.LocalDate;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * @author Coen Boelhouwers
@@ -33,22 +25,28 @@ public class Movie implements Comparable<Movie> {
 
 	private String name;
 	private int id;
-	private String suburl;
 	private EnumSet<Classification> classifications;
-	private List<ScheduledTime> times;
+	private Map<LocalDate, List<ScheduledTime>> times;
 
 	public Movie(String name) {
 		this.name = name;
-		this.times = new ArrayList<>();
+		this.times = new HashMap<>();
 		this.classifications = EnumSet.noneOf(Classification.class);
 	}
 
 	public void addTime(ScheduledTime t) {
-		times.add(t);
+		LocalDate key = t.getTime().toLocalDate();
+		if (times.containsKey(key)) {
+			times.get(key).add(t);
+		} else {
+			List<ScheduledTime> list = new ArrayList<>();
+			list.add(t);
+			times.put(key, list);
+		}
 	}
 
 	public void addTimes(Collection<ScheduledTime> times) {
-		this.times.addAll(times);
+		for (ScheduledTime t : times) addTime(t);
 	}
 
 	public static Movie fromJson(JSONObject object) {
@@ -67,37 +65,17 @@ public class Movie implements Comparable<Movie> {
 		return movie;
 	}
 
-	public EnumSet<Extra> getExtras() {
-		EnumSet<Extra> extras = EnumSet.noneOf(Extra.class);
-		for (ScheduledTime time : times) extras.addAll(time.getExtras());
-		return extras;
-	}
-
-	public EnumSet<Language> getLanguages() {
-		EnumSet<Language> langs = EnumSet.noneOf(Language.class);
-		for (ScheduledTime time : times) langs.add(time.getLanguage());
-		return langs;
+	public List<ScheduledTime> getAllTimes() {
+		List<ScheduledTime> result = new ArrayList<>();
+		for (List<ScheduledTime> list : times.values()) result.addAll(list);
+		return result;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public ScheduledTime getNextTime(SimpleTime now) {
-		Collections.sort(times);
-		for (ScheduledTime time : times) {
-			if (time.getTime().isAfter(now)) return time;
-		}
-		return null;
-	}
-
-	public EnumSet<Projection> getProjections() {
-		EnumSet<Projection> projs = EnumSet.noneOf(Projection.class);
-		for (ScheduledTime time : times) projs.add(time.getProjection());
-		return projs;
-	}
-
-	public List<ScheduledTime> getTimes() {
+	public Map<LocalDate, List<ScheduledTime>> getTimes() {
 		return times;
 	}
 
@@ -107,10 +85,6 @@ public class Movie implements Comparable<Movie> {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public void setSuburl(String suburl) {
-		this.suburl = suburl;
 	}
 
 	public JSONObject toJson() throws JSONException {
@@ -125,7 +99,8 @@ public class Movie implements Comparable<Movie> {
 
 		// Times
 		JSONArray timeArray = new JSONArray();
-		for (ScheduledTime time : times) timeArray.put(time.toJson());
+		for (List<ScheduledTime> tims : times.values())
+			for (ScheduledTime time : tims) timeArray.put(time.toJson());
 		object.put("times", timeArray);
 
 		return object;

@@ -7,7 +7,7 @@ import java.util.EnumSet;
  */
 
 public enum Extra {
-	ATMOS(" Dolby Atmos");
+	ATMOS(" Dolby Atmos", " Atmos");
 
 	private String[] slogans;
 
